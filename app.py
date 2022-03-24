@@ -9,6 +9,7 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
+RESPONSES_KEY = "responses"
 
 @app.get("/")
 def render_survey_start():
@@ -24,15 +25,15 @@ def render_survey_start():
 def redirect_question_one():
     """Redirect to first question"""
 
-    session["responses"] = []
+    session[RESPONSES_KEY] = []
     return redirect("/question/0")
 
 
 @app.get("/question/<int:next_question>")
-def render_question(next_question):
+def show_next_question(next_question):
     """Displays current question and input"""
 
-    responses_length = len(session["responses"])
+    responses_length = len(session[RESPONSES_KEY])
 
     if responses_length != next_question:
         flash("Please answer a valid question")
@@ -40,20 +41,20 @@ def render_question(next_question):
 
     if responses_length == len(survey.questions):
         return redirect("/completion")
-    else:
-        question = survey.questions[next_question]
-        return render_template("question.html", question=question)
+
+    question = survey.questions[next_question]
+    return render_template("question.html", question=question)
 
 
 @app.post("/answer")
 def redirect_answer():
     """Redirect to next question store answer in RESPONSES"""
 
-    response = session["responses"]
-    response.append(request.form["answer"])
-    session["responses"] = response
+    responses = session[RESPONSES_KEY]
+    responses.append(request.form["answer"])
+    session[RESPONSES_KEY] = responses
 
-    next_question = len(response)
+    next_question = len(responses)
     return redirect(F"/question/{next_question}")
 
 
