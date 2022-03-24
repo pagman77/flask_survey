@@ -57,7 +57,7 @@ personality_quiz = Survey(
     ]
 )
 
-surveys = {
+SURVEYS = {
     "satisfaction": satisfaction_survey,
     "personality": personality_quiz,
 }
