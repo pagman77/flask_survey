@@ -8,7 +8,7 @@ app.config['SECRET_KEY'] = "never-tell!"
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
-RESPONSES = []
+
 
 @app.get("/")
 def render_survey_start():
@@ -24,17 +24,24 @@ def render_survey_start():
 def redirect_question_one():
     """Redirect to first question"""
 
+    session["responses"] = []
     return redirect("/question/0")
 
 
-@app.get("/question/<int:index>")
-def render_question(index):
+@app.get("/question/<int:next_question>")
+def render_question(next_question):
     """Displays current question and input"""
 
-    if len(RESPONSES) == len(survey.questions):
+    responses_length = len(session["responses"])
+
+    if responses_length != next_question:
+        flash("Please answer a valid question")
+        return redirect(f"/question/{responses_length}")
+
+    if responses_length == len(survey.questions):
         return redirect("/completion")
     else:
-        question = survey.questions[index]
+        question = survey.questions[next_question]
         return render_template("question.html", question=question)
 
 
@@ -42,14 +49,16 @@ def render_question(index):
 def redirect_answer():
     """Redirect to next question store answer in RESPONSES"""
 
-    RESPONSES.append(request.form["answer"])
-    next_question = len(RESPONSES)
+    response = session["responses"]
+    response.append(request.form["answer"])
+    session["responses"] = response
+
+    next_question = len(response)
     return redirect(F"/question/{next_question}")
 
 
 @app.get("/completion")
 def render_completion_page():
     """Displays completion of survey"""
-    
-    # print(RESPONSES)
+
     return render_template("/completion.html")
