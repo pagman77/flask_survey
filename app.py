@@ -1,7 +1,7 @@
 from urllib import response
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from surveys import SURVEYS as SURVEYS
+from surveys import SURVEYS 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "never-tell!"
@@ -20,9 +20,10 @@ def user_choose_survey():
 @app.post("/")
 def render_survey_start():
     """Displays survey title and start on the page"""
-    survey = request.form["survey"]
-    session[SURVEY_KEY] = survey
-    print(survey)
+
+    title = request.form["survey"]
+    survey = SURVEYS[title]
+    session[SURVEY_KEY] = title
     return render_template(
         "survey_start.html",
         title=survey.title,
@@ -42,7 +43,7 @@ def show_next_question(next_question):
     """Displays current question and input"""
 
     responses_length = len(session[RESPONSES_KEY])
-    survey = session[SURVEY_KEY]
+    survey = SURVEYS[session[SURVEY_KEY]]
 
     if responses_length != next_question:
         flash("Please answer a valid question")
@@ -71,4 +72,6 @@ def redirect_answer():
 def render_completion_page():
     """Displays completion of survey"""
 
-    return render_template("/completion.html")
+    survey = SURVEYS[session[SURVEY_KEY]]
+    answers = session[RESPONSES_KEY]
+    return render_template("/completion.html", questions=survey.questions, answers=answers)
